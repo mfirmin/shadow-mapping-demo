@@ -56,7 +56,12 @@ title: Michael Firmin
       [0.63, 0.63, 0.63],
     );
 
-    renderer.scene.add(plane.mesh);
+    renderer.add(plane);
+
+    function go() {
+      renderer.render();
+      requestAnimationFrame(go);
+    }
 
     xmlhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
@@ -71,19 +76,15 @@ title: Michael Firmin
         mesh.setScale(2.0);
         mesh.setPosition(0, 0.2, 0);
 
-        renderer.scene.add(mesh.mesh);
+        renderer.add(mesh);
+
+        renderer.renderShadowmap();
+
+        requestAnimationFrame(go);
       }
     };
     xmlhttp.open("GET", url, true);
     xmlhttp.send();
-
-    // Go
-    function go() {
-      renderer.render();
-      requestAnimationFrame(go);
-    }
-
-    requestAnimationFrame(go);
   </script>
 </body>
 </html>

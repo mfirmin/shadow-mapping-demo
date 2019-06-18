@@ -2,9 +2,14 @@
 import {
     BufferAttribute,
     BufferGeometry,
+    DataTexture,
+    Matrix4,
     Mesh,
     ShaderMaterial,
 } from './lib/three.module';
+
+const dummyTexture = new DataTexture(new Uint8Array([255, 0, 0, 0]), 1, 1);
+dummyTexture.needsUpdate = true;
 
 export class Entity {
     constructor(vertices, faces, normals, color) {
@@ -51,23 +56,45 @@ export class Entity {
         geom.addAttribute('normal', new BufferAttribute(nbuffer, 3));
 
         geom.computeBoundingBox();
-        console.log(geom.boundingBox);
 
-        const material = this.createMaterial();
-        this.mesh = new Mesh(geom, material);
+        this.createMaterial();
+        this.mesh = new Mesh(geom, this.material);
+
+        this.createShadowMaterial();
     }
 
     createMaterial() {
-        const material = new ShaderMaterial({
+        this.material = new ShaderMaterial({
             uniforms: {
                 color: { type: 'v3', value: this.color },
                 lightsource: { type: 'v3', value: [0, 1, 1] },
+                shadowmap: { type: 's', value: dummyTexture },
+                depthBiasVP: { type: 'm4', value: new Matrix4() },
             },
+            vertexShader: `
+                uniform mat4 depthBiasVP;
+
+                varying vec3 vNormal;
+
+                varying vec3 shadowcoord;
+
+                void main() {
+                    vNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
+
+                    vec4 dp = (depthBiasVP * modelMatrix * vec4(position, 1.0));
+                    shadowcoord = (vec3(dp.x, dp.y, dp.z / dp.w) + vec3(1.0)) * 0.5;
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
             fragmentShader: `
                 uniform vec3 lightsource;
                 uniform vec3 color;
 
+                uniform sampler2D shadowmap;
+
                 varying vec3 vNormal;
+                varying vec3 shadowcoord;
 
                 void main() {
                     vec3 N = normalize(vNormal);
@@ -78,19 +105,35 @@ export class Entity {
                     float a = 0.2;
 
                     gl_FragColor = vec4((a + d) * color, 1.0);
+
+                    if (texture2D(shadowmap, shadowcoord.xy).r < shadowcoord.z) {
+                        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                    }
                 }
             `,
-            vertexShader: `
-                varying vec3 vNormal;
+        });
+    }
 
+    createShadowMaterial() {
+        this.shadowMaterial = new ShaderMaterial({
+            uniforms: {
+            },
+            vertexShader: `
+                varying float depth;
                 void main() {
-                    vNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
+                    depth = (projectionMatrix * modelViewMatrix * vec4(position, 1.0)).z;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying float depth;
+                void main() {
+                    gl_FragColor = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
                 }
             `,
         });
 
-        return material;
+        this.shadowMaterial.extensions.fragDepth = true;
     }
 
     setScale(s) {
