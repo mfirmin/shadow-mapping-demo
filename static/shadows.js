@@ -46909,7 +46909,7 @@
                     vNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
 
                     vec4 dp = (depthBiasVP * modelMatrix * vec4(position, 1.0));
-                    shadowcoord = (vec3(dp.x, dp.y, dp.z / dp.w) + vec3(1.0)) * 0.5;
+                    shadowcoord = (dp.xyz / dp.w) * 0.5 + 0.5;
 
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
@@ -46923,25 +46923,37 @@
                 varying vec3 vNormal;
                 varying vec3 shadowcoord;
 
-                const float shadowTolerance = 1e-3;
+                const float shadowTolerance = 0.005;
+
+                const vec2 poissonDisk0 = vec2( -0.94201624, -0.39906216 );
+                const vec2 poissonDisk1 = vec2( 0.94558609, -0.76890725 );
+                const vec2 poissonDisk2 = vec2( -0.094184101, -0.92938870 );
+                const vec2 poissonDisk3 = vec2( 0.34495938, 0.29387760 );
 
                 void main() {
                     vec3 N = normalize(vNormal);
                     vec3 L = normalize(lightsource);
 
-                    float d = max(0.0, dot(N, L));
+                    float bias = shadowTolerance * tan(acos(dot(N, L)));
+                    bias = clamp(bias, 0.0, 0.05);
 
+                    float shadow = 0.0;
+                    float rhs = shadowcoord.z - bias;
+
+                    vec2 texelSize = vec2(1.0 / 2048.0);
+
+                    for (int x = -1; x <= 1; ++x) {
+                        for (int y = -1; y <= 1; ++y) {
+                            float pcfDepth = texture2D(shadowmap, shadowcoord.xy + vec2(x, y) * texelSize).r;
+                            shadow += shadowcoord.z - bias > pcfDepth ? 1.0 : 0.0;
+                        }
+                    }
+                    shadow /= 9.0;
+
+                    float d = max(0.0, dot(N, L));
                     float a = 0.2;
 
-                    gl_FragColor = vec4((a + d) * color, 1.0);
-
-                    float bias = shadowTolerance * tan(acos(dot(N, L)));
-                    bias = clamp(bias, 0.0, 0.01);
-
-                    // TODO: Blend shadows for softer look
-                    if (texture2D(shadowmap, shadowcoord.xy).r < shadowcoord.z - bias) {
-                        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-                    }
+                    gl_FragColor = vec4((a + (1.0 - shadow) * d) * color, 1.0);
                 }
             `,
 	        });
@@ -46964,6 +46976,8 @@
                     gl_FragColor = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
                 }
             `,
+	            // NOTE: Only works for solid objects
+	            // side: BackSide,
 	        });
 
 	        this.shadowMaterial.extensions.fragDepth = true;
@@ -47035,7 +47049,7 @@
 	    }
 
 	    createShadowmap() {
-	        this.shadowmap = new WebGLRenderTarget(1024, 1024, {
+	        this.shadowmap = new WebGLRenderTarget(2048, 2048, {
 	            magFilter: NearestFilter,
 	            minFilter: NearestFilter,
 	            format: RGBAFormat,

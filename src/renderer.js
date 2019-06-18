@@ -70,7 +70,7 @@ export class Renderer {
     }
 
     createShadowmap() {
-        this.shadowmap = new WebGLRenderTarget(1024, 1024, {
+        this.shadowmap = new WebGLRenderTarget(2048, 2048, {
             magFilter: NearestFilter,
             minFilter: NearestFilter,
             format: RGBAFormat,
