@@ -116,7 +116,6 @@ export class Renderer {
 
         this.renderer.render(this.scene, this.lightCamera, this.shadowmap);
 
-        this.renderer.setSize(this.width, this.height);
         this.renderer.setClearColor(0x000000, 0.0);
 
         const depthMatrix = new Matrix4()

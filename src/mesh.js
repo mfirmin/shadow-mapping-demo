@@ -138,23 +138,17 @@ export class Entity {
             uniforms: {
             },
             vertexShader: `
-                varying float depth;
                 void main() {
-                    depth = (projectionMatrix * modelViewMatrix * vec4(position, 1.0)).z;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
             fragmentShader: `
-                varying float depth;
                 void main() {
                     gl_FragColor = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
                 }
             `,
-            // NOTE: Only works for solid objects
             // side: BackSide,
         });
-
-        this.shadowMaterial.extensions.fragDepth = true;
     }
 
     setScale(s) {
