@@ -108,8 +108,11 @@ export class Entity {
 
                     gl_FragColor = vec4((a + d) * color, 1.0);
 
+                    float bias = shadowTolerance * tan(acos(dot(N, L)));
+                    bias = clamp(bias, 0.0, 0.01);
+
                     // TODO: Blend shadows for softer look
-                    if (texture2D(shadowmap, shadowcoord.xy).r < shadowcoord.z - shadowTolerance) {
+                    if (texture2D(shadowmap, shadowcoord.xy).r < shadowcoord.z - bias) {
                         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
                     }
                 }
