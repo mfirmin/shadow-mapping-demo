@@ -1,0 +1,89 @@
+---
+title: Michael Firmin
+---
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Shadow Mapping Demo</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/shadows.css">
+    <script src="static/shadows.js"></script>
+  </head>
+<body>
+  <div id="main"></div>
+
+  <script>
+    const mainElement = document.getElementById('main');
+
+    document.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+    }, false);
+
+    // Set up renderer
+    const renderer = new shadows.Renderer(mainElement.offsetWidth, mainElement.offsetHeight)
+
+    mainElement.append(renderer.element);
+
+    // Load mesh
+    const xmlhttp = new XMLHttpRequest();
+    const url = "assets/bunny.json";
+
+    const planeData = {
+      vertices: [
+        -1, 0, -1,
+         1, 0, -1,
+         1, 0,  1,
+        -1, 0,  1,
+      ],
+      normals: [
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+      ],
+      faces: [
+        [0, 2, 1],
+        [0, 3, 2],
+      ],
+    };
+
+    const plane = new shadows.Entity(
+      planeData.vertices,
+      planeData.faces,
+      planeData.normals,
+      [0.63, 0.63, 0.63],
+    );
+
+    renderer.scene.add(plane.mesh);
+
+    xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        const data = JSON.parse(this.responseText);
+        const mesh = new shadows.Entity(
+          data.meshes[0].vertices,
+          data.meshes[0].faces,
+          data.meshes[0].normals,
+          [0.12, 0.6, 0.82],
+        );
+
+        mesh.setScale(2.0);
+        mesh.setPosition(0, 0.2, 0);
+
+        renderer.scene.add(mesh.mesh);
+      }
+    };
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+
+    // Go
+    function go() {
+      renderer.render();
+      requestAnimationFrame(go);
+    }
+
+    requestAnimationFrame(go);
+  </script>
+</body>
+</html>
