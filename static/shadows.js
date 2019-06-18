@@ -46923,6 +46923,8 @@
                 varying vec3 vNormal;
                 varying vec3 shadowcoord;
 
+                const float shadowTolerance = 1e-3;
+
                 void main() {
                     vec3 N = normalize(vNormal);
                     vec3 L = normalize(lightsource);
@@ -46934,7 +46936,7 @@
                     gl_FragColor = vec4((a + d) * color, 1.0);
 
                     // TODO: Blend shadows for softer look
-                    if (texture2D(shadowmap, shadowcoord.xy).r < shadowcoord.z) {
+                    if (texture2D(shadowmap, shadowcoord.xy).r < shadowcoord.z - shadowTolerance) {
                         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
                     }
                 }
