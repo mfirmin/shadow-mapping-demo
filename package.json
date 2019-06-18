@@ -18,8 +18,8 @@
     "eslint-plugin-jsx-a11y": "*",
     "eslint-plugin-react": "*",
     "rollup": "*",
-    "rollup-plugin-node-globals": "^1.2.1",
-    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-node-globals": "*",
+    "rollup-plugin-node-resolve": "*",
     "rollup-plugin-commonjs": "*",
     "rollup-plugin-replace": "*"
   }
