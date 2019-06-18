@@ -46996,6 +46996,7 @@
 	    constructor(width, height) {
 	        try {
 	            this.renderer = new WebGLRenderer({
+	                antialias: true,
 	                alpha: true,
 	            });
 	        } catch (e) {
