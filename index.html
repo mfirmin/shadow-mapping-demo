@@ -76,7 +76,18 @@ title: Michael Firmin
         mesh.setScale(2.0);
         mesh.setPosition(0, 0.2, 0);
 
+        const mesh2 = new shadows.Entity(
+          data.meshes[0].vertices,
+          data.meshes[0].faces,
+          data.meshes[0].normals,
+          [0.72, 0.6, 0.22],
+        );
+
+        mesh2.setScale(0.5);
+        mesh2.setPosition(0, 0.7, 0.4);
+
         renderer.add(mesh);
+        renderer.add(mesh2);
 
         renderer.renderShadowmap();
 
