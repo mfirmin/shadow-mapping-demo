@@ -99,11 +99,6 @@ export class Entity {
 
                 const float shadowTolerance = 0.005;
 
-                const vec2 poissonDisk0 = vec2( -0.94201624, -0.39906216 );
-                const vec2 poissonDisk1 = vec2( 0.94558609, -0.76890725 );
-                const vec2 poissonDisk2 = vec2( -0.094184101, -0.92938870 );
-                const vec2 poissonDisk3 = vec2( 0.34495938, 0.29387760 );
-
                 void main() {
                     vec3 N = normalize(vNormal);
                     vec3 L = normalize(lightsource);
